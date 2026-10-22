@@ -1,179 +1,174 @@
 ﻿using System;
-using System.Linq.Expressions;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 
-namespace dz1tum
+class Program
 {
-    internal class Program
+    static void Ex1(string filePath)
     {
-        static int Maxnum(int num1, int num2)
+        if (!File.Exists(filePath))
         {
-            if (num1 > num2)
-            {
-                return num1;
-            }
-            else
-            {
-                return num2;
-            }
+            Console.WriteLine($"Ошибка: Файл по пути '{filePath}' не найден.");
+            return;
         }
-        static void Swap(ref string firstvar, ref string secondvar)
-        {
-            string buffer = firstvar;
-            firstvar = secondvar;
-            secondvar = buffer;
-        }
-        static bool TryCalculateFactorial(int number, out long result)
-        {
-            result = 1;
-            if (number < 0)
-            {
-                result = 0;
-                return false;
-            }
 
-            try
+        try
+        {
+            string fileContent = File.ReadAllText(filePath);
+            List<char> charList = new List<char>(fileContent.ToCharArray());
+            string vowelsPattern = "аеёиоуыэюяАЕЁИОУЫЭЮЯaeiouyAEIOUY";
+            string consonantsPattern = "бвгджзйклмнпрстфхцчшщБВГДЖЗЙКЛМНПРСТФХЦЧШЩbcdfghjklmnpqrstvwxyzBCDFGHJKLMNPQRSTVWXYZ";
+            int vowelsCount = 0;
+            int consonantsCount = 0;
+
+            foreach (char c in charList)
             {
-                checked
+                if (vowelsPattern.Contains(c))
                 {
-                    for (int i = 2; i <= number; i++)
-                    {
-                        result *= i;
-                    }
+                    vowelsCount++;
                 }
-                return true;
-            }
-            catch (OverflowException)
-            {
-                result = 0;
-                return false;
-            }
-        }
-        static long CalculateFactorialRecursive(int n)
-        {
-
-            if (n == 0 || n == 1)
-            {
-                return 1;
-            }
-
-            return n * CalculateFactorialRecursive(n - 1);
-        }
-        static int Gcd(int a, int b)
-        {
-            while (b != 0)
-            {
-                int temp = b;
-                b = a % b;
-                a = temp;
-            }
-            return a;
-        }
-        static int Gcd(int a, int b, int c)
-        {
-
-            return Gcd(Gcd(a, b), c);
-        }
-        static long Fibonacci(int n)
-        {
-            if (n == 1 || n == 2)
-            {
-                return 1;
-            }
-
-            return Fibonacci(n - 1) + Fibonacci(n - 2);
-        }
-        static int ReadNaturalNumber(string message)
-        {
-            int result;
-            bool isValid;
-            do
-            {
-                Console.Write(message);
-                isValid = int.TryParse(Console.ReadLine(), out result) && result > 0;
-                if (!isValid)
+                else if (consonantsPattern.Contains(c))
                 {
-                    Console.WriteLine("Ошибка! Введите целое число больше 0.");
-                }
-            } while (!isValid);
-
-            return result;
-        }
-        static void Main(string[] args)
-        {
-            Console.WriteLine("Упражнение 5.1\nВведите первое число (по умолчанию 0)");
-            int number1, number2;
-            bool isnumber1 = int.TryParse(Console.ReadLine(), out number1);
-            Console.WriteLine("Введите второе число (по умолчанию 0)");
-            bool isnumber2 = int.TryParse(Console.ReadLine(), out number2);
-            Console.WriteLine($"Число {Maxnum(number1, number2)} наибольшее");
-            Console.ReadKey();
-
-            Console.WriteLine("Упражнение 5.2\nВведите первое значение");
-            string firstvariable = Console.ReadLine();
-            Console.WriteLine("Введите второе значение");
-            string secondvariable = Console.ReadLine();
-            Swap(ref secondvariable, ref firstvariable);
-            Console.WriteLine($"Теперь первое значение равно {firstvariable}, а второе {secondvariable} ");
-            Console.ReadKey();
-
-            Console.WriteLine("Упражнение 5.3\nВведите число, факториал которого будет браться");
-            int factnum;
-            if (!int.TryParse(Console.ReadLine(), out factnum))
-            {
-                Console.WriteLine("Это не число");
-            }
-
-            if (TryCalculateFactorial(factnum, out long result1))
-            {
-                Console.WriteLine($"Факториал {factnum} равен: {result1}");
-            }
-            else
-            {
-                Console.WriteLine($"Ошибка: при вычислении факториала {factnum} произошло переполнение!");
-            }
-            Console.ReadKey();
-
-            Console.WriteLine("Упражнение 5.4\nвведите число для вычисления факториала");
-            if (int.TryParse(Console.ReadLine(), out int num))
-            {
-                if (num < 0)
-                {
-                    Console.WriteLine("Ошибка: факториал отрицательного числа не определен.");
-                }
-                else
-                {
-                    try
-                    {
-                        long result = checked(CalculateFactorialRecursive(num));
-                        Console.WriteLine($"Факториал {num} равен: {result}");
-                    }
-                    catch (OverflowException)
-                    {
-                        Console.WriteLine($"Ошибка: при вычислении факториала {num} произошло переполнение!");
-                    }
+                    consonantsCount++;
                 }
             }
-            else
-            {
-                Console.WriteLine("Ошибка: введено не число.");
-            }
-            Console.ReadKey();
-            Console.WriteLine("Домашнее задание 5.1\nВведите первое число(по умолчанию 0)");
-            bool isnumdcd1 = int.TryParse(Console.ReadLine(), out int numdc1);
-            Console.WriteLine("Введите второе число(по умолчанию 0)");
-            bool isnumdcd2 = int.TryParse(Console.ReadLine(), out int numdc2);
-            Console.WriteLine("Введите третье число(по умолчанию 0)");
-            bool isnumdcd3 = int.TryParse(Console.ReadLine(), out int numdc3);
-            Console.WriteLine($"НОД этих трех чисел равен: {Gcd(numdc1, numdc2, numdc3)}");
-            Console.ReadKey();
-
-            Console.WriteLine("Домашнее задание 5.2");
-            int n1 = ReadNaturalNumber("Введите номер элемента (n):");
-            long fibonacciValue = Fibonacci(n1);
-            Console.WriteLine($"\n{n1}-е число Фибоначчи равно: {fibonacciValue}");
-            Console.ReadKey();
-
-
+            Console.WriteLine($"Количество гласных букв: {vowelsCount}");
+            Console.WriteLine($"Количество согласных букв: {consonantsCount}");
         }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Произошла ошибка при обработке файла: {ex.Message}");
+        }
+    }
+
+    static void Ex2()
+    {
+        LinkedList<LinkedList<int>> matrixA = new LinkedList<LinkedList<int>>();
+        matrixA.AddLast(new LinkedList<int>(new[] { 1, 2, 3 }));
+        matrixA.AddLast(new LinkedList<int>(new[] { 4, 5, 6 }));
+
+        LinkedList<LinkedList<int>> matrixB = new LinkedList<LinkedList<int>>();
+        matrixB.AddLast(new LinkedList<int>(new[] { 7, 8 }));
+        matrixB.AddLast(new LinkedList<int>(new[] { 9, 1 }));
+        matrixB.AddLast(new LinkedList<int>(new[] { 2, 3 }));
+
+        Console.WriteLine("Матрица A:");
+        foreach (var row in matrixA)
+        {
+            foreach (var element in row)
+            {
+                Console.Write($"{element}\t");
+            }
+            Console.WriteLine();
+        }
+
+        Console.WriteLine("\nМатрица B:");
+        foreach (var row in matrixB)
+        {
+            foreach (var element in row)
+            {
+                Console.Write($"{element}\t");
+            }
+            Console.WriteLine();
+        }
+
+        int rowsA = matrixA.Count;
+        int colsA = matrixA.First.Value.Count;
+        int rowsB = matrixB.Count;
+        int colsB = matrixB.First.Value.Count;
+
+        if (colsA != rowsB)
+        {
+            Console.WriteLine("\nОшибка: Количество столбцов матрицы A должно совпадать с количеством строк матрицы B.");
+            return;
+        }
+        var listA = new List<List<int>>();
+        foreach (var row in matrixA)
+        {
+            listA.Add(new List<int>(row));
+        }
+
+        var listB = new List<List<int>>();
+        foreach (var row in matrixB)
+        {
+            listB.Add(new List<int>(row));
+        }
+        LinkedList<LinkedList<int>> resultMatrix = new LinkedList<LinkedList<int>>();
+
+        for (int i = 0; i < rowsA; i++)
+        {
+            LinkedList<int> row = new LinkedList<int>();
+            for (int j = 0; j < colsB; j++)
+            {
+                int sum = 0;
+                for (int k = 0; k < colsA; k++)
+                {
+                    sum += listA[i][k] * listB[k][j];
+                }
+                row.AddLast(sum);
+            }
+            resultMatrix.AddLast(row);
+        }
+        Console.WriteLine("\nРезультат умножения (Матрица A * Матрица B):");
+        foreach (var row in resultMatrix)
+        {
+            foreach (var element in row)
+            {
+                Console.Write($"{element}\t");
+            }
+            Console.WriteLine();
+        }
+    }
+    static void Ex3()
+    {
+        string[] monthNames = {
+            "Январь", "Февраль", "Март", "Апрель", "Май", "Июнь",
+            "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь"
+        };
+        Dictionary<string, int[]> temperatureData = new Dictionary<string, int[]>();
+        Random rand = new Random();
+
+        foreach (string month in monthNames)
+        {
+            int[] dailyTemperatures = new int[30];
+            for (int day = 0; day < 30; day++)
+            {
+                dailyTemperatures[day] = rand.Next(-20, 31); 
+            }
+            temperatureData.Add(month, dailyTemperatures);
+        }
+
+        Dictionary<string, double> averageTemperatures = new Dictionary<string, double>();
+        foreach (var kvp in temperatureData)
+        {
+            double sum = kvp.Value.Sum();
+            double average = sum / 30.0;
+            averageTemperatures.Add(kvp.Key, average);
+            
+        }
+        var sortedAverages = averageTemperatures.OrderBy(pair => pair.Value);
+        Console.WriteLine("\nОтсортированные средние температуры по возрастанию:");
+        foreach (var kvp in sortedAverages)
+        {
+            Console.WriteLine($"{kvp.Key}: {kvp.Value:F2}°C");
+        }
+    }
+    static void Main(string[] args)
+    {
+        Console.WriteLine("Упражнение+Домашнее задание 6.1");
+        Ex1("..\\..\\file\\file1.txt");
+        Console.ReadKey();
+        Console.WriteLine("Упражнение+Домашнее задание 6.2");
+        Ex2();
+        Console.ReadKey();
+        Console.WriteLine("Упражнение+Домашнее задание 6.3");
+        Ex3();
+        Console.ReadKey();
+
+
+
+
+
     }
 }

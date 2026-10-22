@@ -1,186 +1,381 @@
-﻿using System;
-using System.Threading;
-using dz1lat.structenums;
+﻿using dz1lat.Grannies;
+using dz1lat.Students;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 namespace dz1lat
 {
     internal class Program
     {
 
-        static bool SwapElements(int[] array, int value1, int value2)
+        static void Ex1(string targetFolder)
         {
-            int index1 = Array.IndexOf(array, value1);
-            int index2 = Array.IndexOf(array, value2);
-
-            if (index1 == -1 || index2 == -1)
+            if (!Directory.Exists(targetFolder))
             {
-                return false;
+                Console.WriteLine($"Ошибка: Папка '{targetFolder}' не найдена.");
+                return;
             }
-            int temp = array[index1];
-            array[index1] = array[index2];
-            array[index2] = temp;
+            List<string> foundFiles = new List<string>();
+            foundFiles.AddRange(Directory.GetFiles(targetFolder, "*.jpeg"));
 
-            return true; 
-        }
-        static long CalculateArrayStats(out double avg, ref long prod, params int[] array)
-        {
-            if (array == null || array.Length == 0)
+            if (foundFiles.Count < 32)
             {
-                avg = 0;
-                prod = 0;
-                return 0;
+                Console.WriteLine($"Ошибка: В папке найдено только {foundFiles.Count} картинок. Требуется минимум 32.");
+                return;
             }
-
-            long sum = 0;
-            foreach (int number in array)
+            List<string> imageList = new List<string>(64);
+            for (int i = 0; i < 32; i++)
             {
-                sum += number;
-                prod *= number;
+                imageList.Add(foundFiles[i]);
+                imageList.Add(foundFiles[i]);
             }
-            avg = (double)sum / array.Length;
-
-            return sum;
-        }
-        static readonly string[][] DigitPatterns = new string[][]
-        {
-        new string[] { "###", "# #", "# #", "# #", "###" }, 
-        new string[] { "  #", "  #", "  #", "  #", "  #" }, 
-        new string[] { "###", "  #", "###", "#  ", "###" }, 
-        new string[] { "###", "  #", "###", "  #", "###" }, 
-        new string[] { "# #", "# #", "###", "  #", "  #" }, 
-        new string[] { "###", "#  ", "###", "  #", "###" }, 
-        new string[] { "###", "#  ", "###", "# #", "###" }, 
-        new string[] { "###", "  #", "  #", "  #", "  #" }, 
-        new string[] { "###", "# #", "###", "# #", "###" }, 
-        new string[] { "###", "# #", "###", "  #", "###" }  
-        };
-        static void DrawDigit(int digit)
-        {
-            string[] rows = DigitPatterns[digit];
-            foreach (string row in rows)
+            Dictionary<string, int> fileToNumber = new Dictionary<string, int>();
+            for (int i = 0; i < 32; i++)
             {
-                Console.WriteLine(row);
+                fileToNumber[foundFiles[i]] = i + 1;
             }
-        }
-        static void ShowRedError(string errorMessage)
-        {
-            ConsoleColor originalBackground = Console.BackgroundColor;
-            ConsoleColor originalForeground = Console.ForegroundColor;
-            Console.BackgroundColor = ConsoleColor.Red;
-            Console.ForegroundColor = ConsoleColor.White;
-            Console.Clear(); 
-            Console.WriteLine("\n" + errorMessage);
-            Console.WriteLine("Консоль восстановится через 3 секунды...");
-            Thread.Sleep(3000);
-            Console.BackgroundColor = originalBackground;
-            Console.ForegroundColor = originalForeground;
-            Console.Clear();
-        }
-        static void Main(string[] args)
-        {
-            Console.WriteLine("Задание 5.1");
-            int[] numbers = new int[20];
+            Console.WriteLine("ИЗНАЧАЛЬНЫЙ СПИСОК");
+            for (int i = 0; i < imageList.Count; i++)
+            {
+                Console.Write($"{fileToNumber[imageList[i]]}\t");
+                if ((i + 1) % 8 == 0) Console.WriteLine();
+            }
             Random random = new Random();
-
-            for (int i = 0; i < numbers.Length; i++)
+            int n = imageList.Count;
+            while (n > 1)
             {
-                numbers[i] = random.Next(1, 100);
+                n--;
+                int k = random.Next(n + 1);
+                string temp = imageList[k];
+                imageList[k] = imageList[n];
+                imageList[n] = temp;
             }
-
-            Console.WriteLine("Исходный массив:");
-            Console.WriteLine(string.Join(" ", numbers));
-            Console.WriteLine();
-            Console.Write("Введите первое число из массива(по умолчанию 0): ");
-            bool isfirstNumber = int.TryParse(Console.ReadLine(), out int firstNumber);
-            Console.Write("Введите второе число из массива: ");
-            bool issecondNumber = int.TryParse(Console.ReadLine(), out int secondNumber);
-
-            bool success = SwapElements(numbers, firstNumber, secondNumber);
-            if (success)
+            Console.WriteLine("\nПОЛУЧЕННЫЙ ПЕРЕМЕШАННЫЙ СПИСОК");
+            for (int i = 0; i < imageList.Count; i++)
             {
-                Console.WriteLine("Получившийся массив:");
-                Console.WriteLine(string.Join(" ", numbers));
+                Console.Write($"{fileToNumber[imageList[i]]}\t");
+                if ((i + 1) % 8 == 0) Console.WriteLine();
             }
-            else
+        }
+        static void Ex2(string inputStudents)
+        {
+            Dictionary<string, Studentstruct> studentDict = new Dictionary<string, Studentstruct>();
+
+            string[] lines = File.ReadAllLines(inputStudents);
+            foreach (string line in lines)
             {
-                Console.WriteLine("Ошибка: Одно или оба числа не найдены в массиве!");
-            }
-            Console.ReadKey();
-
-            Console.WriteLine("Задание 5.2\nВведите размер массива(по умолчанию 0): ");
-            bool issize = int.TryParse(Console.ReadLine(), out int size);
-            int[] userArray = new int[size];
-
-            for (int i = 0; i < userArray.Length; i++)
-            {
-                Console.Write($"Введите элемент [{i}]: ");
-                userArray[i] = int.Parse(Console.ReadLine());
-            }
-            long product = 1;
-            double average;
-            long sum = CalculateArrayStats(out average, ref product, userArray);
-            Console.WriteLine($"Сумма элементов: {sum}\nПроизведение элементов: {product}\nСреднее арифметическое: {average:F2}");
-            Console.ReadKey();
-
-            Console.WriteLine("Задание 5.3");
-            while (true)
-            {
-                Console.Write("Введите ввод (число, exit или закрыть): ");
-                string input = Console.ReadLine()?.Trim();
-                string lowerInput = input.ToLower();
-
-                if (lowerInput == "exit" || lowerInput == "закрыть")
+                string[] parts = line.Split(';');
+                if (parts.Length == 5)
                 {
+                    string lastName = parts[0].Trim();
+                    string firstName = parts[1].Trim();
+                    int birthYear = int.Parse(parts[2].Trim());
+                    string examName = parts[3].Trim();
+                    int score = int.Parse(parts[4].Trim());
+
+                    Studentstruct student = new Studentstruct(lastName, firstName, birthYear, examName, score);
+                    string key = $"{lastName} {firstName}";
+
+                    if (!studentDict.ContainsKey(key))
+                    {
+                        studentDict.Add(key, student);
+                    }
+                }
+            }
+            string[] commands = new string[] { "Новый студент", "Удалить", "Сортировать", "Выход" };
+            byte flag = 1;
+            while (flag == 1)
+            {
+                Console.WriteLine("Доступные команды: [Новый студент], [Удалить], [Сортировать], [Выход]");
+                Console.Write("Введите команду: ");
+                string command = Console.ReadLine().Trim();
+
+                switch (command)
+                {
+                    case "Новый студент":
+                        Console.Write("Введите фамилию: ");
+                        string lName = Console.ReadLine();
+                        Console.Write("Введите имя: ");
+                        string fName = Console.ReadLine();
+                        Console.Write("Введите год рождения: ");
+                        int year = int.TryParse(Console.ReadLine(), out int y) ? y : 0;
+                        Console.Write("Введите вступительный экзамен: ");
+                        string exam = Console.ReadLine();
+                        Console.Write("Введите баллы: ");
+                        int points = int.TryParse(Console.ReadLine(), out int p) ? p : 0;
+
+                        Studentstruct newStudent = new Studentstruct(lName, fName, year, exam, points);
+                        string newKey = $"{lName} {fName}";
+
+                        if (!studentDict.ContainsKey(newKey))
+                        {
+                            studentDict.Add(newKey, newStudent);
+                            Console.WriteLine("Студент успешно добавлен.");
+                        }
+                        else
+                        {
+                            Console.WriteLine("Такой студент уже есть в базе данных!");
+                        }
+                        break;
+
+                    case "Удалить":
+                        Console.Write("Введите фамилию удаляемого студента: ");
+                        string deleteLName = Console.ReadLine().Trim();
+                        Console.Write("Введите имя удаляемого студента: ");
+                        string deleteFName = Console.ReadLine().Trim();
+
+                        string searchKey = $"{deleteLName} {deleteFName}";
+
+                        if (studentDict.Remove(searchKey))
+                        {
+                            Console.WriteLine($"Студент {searchKey} успешно удален.");
+                        }
+                        else
+                        {
+                            Console.WriteLine("Студент с такими данными не найден.");
+                        }
+                        break;
+
+                    case "Сортировать":
+                        Console.WriteLine("\nСписок студентов, отсортированный по баллам:");
+                        List<Studentstruct> sortedStudents = studentDict.Values.OrderBy(s => s.Score).ToList();
+
+                        foreach (var student in sortedStudents)
+                        {
+                            Console.WriteLine(student);
+                        }
+                        break;
+
+                    case "Выход":
+                        flag = 0;
+                        break;
+
+                    default:
+                        Console.WriteLine("Неизвестная команда. Проверьте правильность написания (учитывайте регистр букв).");
+                        break;
+                }
+            }
+        }
+        static void Ex3()
+        {
+            Stack<Hospital> hospitals = new Stack<Hospital>();
+            hospitals.Push(new Hospital("Городская Клиника №1", new List<string> { "Грипп", "Радикулит", "Давление" }, 2));
+            hospitals.Push(new Hospital("Областная Больница №2", new List<string> { "Остеохондроз", "Давление", "Кашель" }, 3));
+            hospitals.Push(new Hospital("Частный Госпиталь", new List<string> { "Грипп", "Мигрень", "Склероз" }, 1));
+
+            List<Granny> allGrannies = new List<Granny>();
+            Queue<Granny> grannyQueue = new Queue<Granny>();
+
+            Console.WriteLine("Ввод данных о бабулях с клавиатуры");
+            bool entering = true;
+            while (entering)
+            {
+                Console.Write("\nВведите имя бабули (или 'стоп' для завершения ввода): ");
+                string nameInput = Console.ReadLine();
+                string name = nameInput != null ? nameInput.Trim() : "";
+
+                if (name.Equals("стоп", StringComparison.OrdinalIgnoreCase) || string.IsNullOrEmpty(name))
+                {
+                    entering = false;
+                    continue;
+                }
+
+                Console.Write("Введите возраст: ");
+                int age;
+                int.TryParse(Console.ReadLine(), out age);
+
+                List<Disease> diseases = new List<Disease>();
+                while (true)
+                {
+                    Console.Write("Введите название болезни (или нажмите Enter, если болезней больше нет): ");
+                    string diseaseInput = Console.ReadLine();
+                    string diseaseName = diseaseInput != null ? diseaseInput.Trim() : "";
+
+                    if (string.IsNullOrEmpty(diseaseName)) break;
+
+                    Console.Write("Введите лекарство от болезни '" + diseaseName + "': ");
+                    string medicineInput = Console.ReadLine();
+                    string medicine = medicineInput != null ? medicineInput.Trim() : "";
+
+                    diseases.Add(new Disease(diseaseName, medicine));
+                }
+
+                Granny g = new Granny(name, age, diseases);
+                grannyQueue.Enqueue(g);
+                allGrannies.Add(g);
+            }
+
+            Console.WriteLine("\nНачинается распределение бабуль");
+
+            List<Hospital> temporaryHospitalList = hospitals.ToList();
+
+            while (grannyQueue.Count > 0)
+            {
+                Granny currentGranny = grannyQueue.Dequeue();
+                bool distributed = false;
+
+                if (currentGranny.Diseases.Count == 0)
+                {
+                    for (int i = 0; i < temporaryHospitalList.Count; i++)
+                    {
+                        Hospital hospital = temporaryHospitalList[i];
+                        if (hospital.Patients.Count < hospital.Capacity)
+                        {
+                            hospital.Patients.Add(currentGranny);
+                            Console.WriteLine("[Успех] " + currentGranny.Name + " пришла 'только спросить' и зашла в '" + hospital.Name + "'");
+                            distributed = true;
+                            break;
+                        }
+                    }
+                }
+                else
+                {
+                    for (int i = 0; i < temporaryHospitalList.Count; i++)
+                    {
+                        Hospital hospital = temporaryHospitalList[i];
+                        if (hospital.Patients.Count >= hospital.Capacity) continue;
+
+                        int matchingDiseasesCount = 0;
+                        foreach (Disease d in currentGranny.Diseases)
+                        {
+                            if (hospital.TreatableDiseases.Contains(d.Name))
+                            {
+                                matchingDiseasesCount++;
+                            }
+                        }
+
+                        if (matchingDiseasesCount * 2 > currentGranny.Diseases.Count)
+                        {
+                            hospital.Patients.Add(currentGranny);
+                            Console.WriteLine("[Успех] " + currentGranny.Name + " госпитализирована в '" + hospital.Name + "' (вылечат " + matchingDiseasesCount + " из " + currentGranny.Diseases.Count + " болезней)");
+                            distributed = true;
+                            break;
+                        }
+                    }
+                }
+
+                if (!distributed)
+                {
+                    Console.WriteLine("[Отказ] Для бабули " + currentGranny.Name + " не нашлось места или подходящей больницы. Она осталась на улице плакать...");
+                }
+            }
+
+            hospitals.Clear();
+            for (int i = temporaryHospitalList.Count - 1; i >= 0; i--)
+            {
+                hospitals.Push(temporaryHospitalList[i]);
+            }
+            Console.WriteLine("\nСПИСОК ВСЕХ БАБУЛЬ:");
+            foreach (Granny g in allGrannies)
+            {
+                Console.WriteLine("- " + g.ToString());
+            }
+
+            Console.WriteLine("\nСПИСОК БОЛЬНИЦ И ИХ ЗАПОЛНЕННОСТЬ:");
+            foreach (Hospital hospital in hospitals)
+            {
+                Console.WriteLine("\n" + hospital.ToString());
+                if (hospital.Patients.Count > 0)
+                {
+                    Console.WriteLine("  Пациенты внутри:");
+                    foreach (Granny patient in hospital.Patients)
+                    {
+                        Console.WriteLine("    * " + patient.Name);
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("  В данный момент пациентов нет.");
+                }
+            }
+        }
+        static void Ex4()
+        {
+            string[] vertexNames = new string[] { "А", "Б", "В", "Г", "Д", "Е" };
+            int[,] adjacencyMatrix = new int[,]
+            {
+                {0, 1, 1, 0, 0, 0},
+                {1, 0, 1, 1, 0, 0}, 
+                {1, 1, 0, 0, 1, 0}, 
+                {0, 1, 0, 0, 0, 1}, 
+                {0, 0, 1, 0, 0, 0}, 
+                {0, 0, 0, 1, 0, 0}
+            };
+            int startIdx = 0;  
+            int targetIdx = 5; 
+
+            Console.WriteLine("Поиск кратчайшего пути от '" + vertexNames[startIdx] + "' до '" + vertexNames[targetIdx] + "':\n");
+
+            Queue<int> queue = new Queue<int>();
+            HashSet<int> visited = new HashSet<int>();
+            Dictionary<int, int> parents = new Dictionary<int, int>();
+            queue.Enqueue(startIdx);
+            visited.Add(startIdx);
+
+            bool isPathFound = false;
+
+            while (queue.Count > 0)
+            {
+                int current = queue.Dequeue();
+
+                if (current == targetIdx)
+                {
+                    isPathFound = true;
                     break;
                 }
 
-                if (!int.TryParse(input, out int number))
-                {
-                    throw new FormatException("Критическая ошибка: введённое значение не является целым числом!");
+                for (int neighbor = 0; neighbor < vertexNames.Length; neighbor++)
+                 { 
+                    if (adjacencyMatrix[current, neighbor] == 1 && !visited.Contains(neighbor))
+                    {
+                        visited.Add(neighbor);
+                        parents[neighbor] = current;
+                        queue.Enqueue(neighbor);
+                    }
                 }
-
-                if (number >= 0 && number <= 9)
-                {
-                    Console.WriteLine($"\nРисунок цифры {number}:");
-                    DrawDigit(number);
-                    Console.WriteLine();
-                }
-
-                else
-                {
-                    ShowRedError($"Ошибка: Число {number} вне диапазона от 0 до 9!");
-                }
-
             }
-            Console.ReadKey();
-
-            Console.WriteLine("Задание 5.4");
-            Grandpa[] grandpas = new Grandpa[5];
-            grandpas[0] = new Grandpa("Иваныч", GrumpinessLevel.Низкий, new string[]
-                { "Эх, молодежь...", "Раньше было лучше!" }); 
-            grandpas[1] = new Grandpa("Петрович", GrumpinessLevel.Средний, new string[]
-                { "Цены опять выросли!", "Проститутки у подъезда!", "Гады разворовали страну!" }); 
-            grandpas[2] = new Grandpa("Михалыч", GrumpinessLevel.Высокий, new string[]
-                { "Понаехали тут!", "Телевизор один бред кажет!", "Гребаная погода!" }); 
-
-            grandpas[3] = new Grandpa("Савельич", GrumpinessLevel.Экстремальный, new string[]
-                { "Капиталисты проклятые!", "Ворюги кругом!", "Хватит шуметь!", "Тьфу на вас!", "Дерьмо ходячее!" }); 
-
-            grandpas[4] = new Grandpa("Никитич", GrumpinessLevel.Высокий, new string[]
-                { "Что за мода пошла?", "Тьфу!" }); 
-            string[] swearList = { "проститутки", "гады", "гребаная", "дерьмо" };
-            Grandpa referee = grandpas[0];
-            for (int i = 0; i < grandpas.Length; i++)
+       
+            if (isPathFound)
             {
-                int earnedBruises = referee.CheckSwearWords(grandpas[i], swearList);
-                grandpas[i].BruisesCount += earnedBruises;
-                Console.WriteLine($"Дед: {grandpas[i].Name}\nУровень ворчливости: {grandpas[i].Grumpiness}\nКоличество фраз: {grandpas[i].GrumblePhrases.Length}\nПолучено фингалов от бабки за маты: {earnedBruises}\nВсего синяков теперь: {grandpas[i].BruisesCount}");
-                Console.WriteLine(new string('-', 35));
-            }
+                List<string> path = new List<string>();
+                int curr = targetIdx;
 
-            Console.ReadKey();
+                while (curr != startIdx)
+                {
+                    path.Add(vertexNames[curr]);
+                    curr = parents[curr];
+                }
+                path.Add(vertexNames[startIdx]);
+
+                path.Reverse();
+
+                Console.WriteLine("Кратчайший путь найден: " + string.Join(" -> ", path));
+                Console.WriteLine("Количество переходов (ребер): " + (path.Count - 1));
+            }
+            else
+            {
+                Console.WriteLine("Пути между вершинами не существует.");
+            }
         }
-    }
-}
+        static void Main(string[] args)
+                    {
+            Console.WriteLine("Задание 1");
+            Ex1("..\\..\\Images");
+            Console.ReadKey();
+            Console.WriteLine("Задание 2");
+            Ex2("..\\..\\Students\\StudentsList.txt");
+            Console.ReadKey();
+            Ex3();
+            Console.ReadKey();
+            Ex4();
+
+                    }
+                }
+            }
+        
+    
+
 
 
         
